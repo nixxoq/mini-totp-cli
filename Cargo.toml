@@ -1,0 +1,9 @@
+[package]
+name = "mini-totp-cli"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+base32 = "0.5.1"
+hmac = "0.12.1"
+sha1 = "0.10.6"
