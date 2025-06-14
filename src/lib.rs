@@ -1,4 +1,5 @@
 pub mod totp;
+pub mod utils;
 
 use hmac::Hmac;
 use sha1::Sha1;

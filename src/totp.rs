@@ -9,6 +9,7 @@ pub struct Totp {
     secret: String,
     pub digits: u32,
     pub period: u64,
+    pub code: String,
 }
 
 impl Totp {
@@ -18,6 +19,7 @@ impl Totp {
             secret,
             digits,
             period,
+            code: String::new(),
         }
     }
 
@@ -52,6 +54,8 @@ impl Totp {
         // Modulo digits to extract the code
         let modulo = 10u32.pow(self.digits);
         let final_code = code_number % modulo;
+
+        // self.code = format!("{:0width$}", final_code, width = self.digits as usize);
 
         Ok(format!(
             "{:0width$}",
