@@ -44,7 +44,7 @@ pub struct Entry {
     pub other: Value,
 }
 
-pub struct AegisDB {
+pub struct Aegis {
     entries: Vec<Entry>,
 }
 
@@ -56,7 +56,7 @@ pub enum SearchBy<'a> {
 }
 
 // TODO: review this
-impl AegisDB {
+impl Aegis {
     pub fn new<P>(db_path: P, password: &[u8]) -> Result<Self, String>
     where
         P: AsRef<Path>,
@@ -69,6 +69,24 @@ impl AegisDB {
         Self::decrypt_db(&contents, password)
     }
 
+    /// Decrypts the database contents using the provided password.
+    ///
+    /// How it works (explained in mooooore detail, including bytes etc.):
+    /// 1. Reads the encrypted database contents from the file.
+    /// 2. Parses the JSON data and extracts the header.
+    /// 3. Validates the header and deserializes it into a `Header` struct.
+    /// 4. Retrieves the password slots from the header.
+    /// 5. Decrypts the AES-256 key using the provided password and the salt.
+    /// 6. Decrypts the database entries using the decrypted AES-256 key.
+    ///
+    /// # Arguments
+    ///
+    /// * `contents` - The encrypted database contents.
+    /// * `password` - The password used to encrypt the database.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing the decrypted database or an error message.
     fn decrypt_db(contents: &str, password: &[u8]) -> Result<Self, String> {
         let data: Value =
             serde_json::from_str(contents).map_err(|e| format!("Invalid JSON: {}", e))?;
@@ -172,8 +190,10 @@ impl AegisDB {
     ///
     /// # Examples
     /// ```
-    /// let aegis = Aegis::new();
-    /// let entries = aegis.get_by(SearchBy::Name("example".to_string()));
+    /// use mini_totp_cli::utils::aegis::{SearchBy, Aegis};
+    ///
+    /// let aegis = Aegis::new("path", b"password");
+    /// let entries = aegis.expect("error").get_by(SearchBy::Name("example"));
     /// ```
     pub fn get_by(&self, criteria: SearchBy) -> Vec<Entry> {
         self.entries
@@ -240,7 +260,7 @@ mod tests {
             },
         ];
 
-        let db = AegisDB { entries };
+        let db = Aegis { entries };
 
         // Search by name
         let results = db.get_by(SearchBy::Name("hub"));
@@ -275,7 +295,7 @@ mod tests {
 
     #[test]
     fn get_all() {
-        match AegisDB::new(
+        match Aegis::new(
             "test.json", // will be created soon
             "pwd".as_bytes(),
         ) {
